@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "272402550390",
+    "project_id": "adamastourlogin",
+    "storage_bucket": "adamastourlogin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:272402550390:android:eb9a56b4e281ef28d2d957",
+        "android_client_info": {
+          "package_name": "com.example.adamastour2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "272402550390-hi1p63q3jeighg2n8tpmbv6sqk0ntjjd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXOBQ3K9c6CW6Wv2OIjN3lybtAW3B5Vto"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "272402550390-hi1p63q3jeighg2n8tpmbv6sqk0ntjjd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
