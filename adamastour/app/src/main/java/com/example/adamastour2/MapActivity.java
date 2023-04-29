@@ -31,11 +31,13 @@ import java.util.Locale;
 
 public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    //GoogleMap gMap;
     Location currentLocation;
     FusedLocationProviderClient fusedClient;
     private static final int REQUEST_CODE = 101;
     FrameLayout map;
+    GoogleMap gMap;
+    Marker marker;
+    SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,12 +45,47 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         setContentView(R.layout.activity_map);
 
         map = findViewById(R.id.map);
+        searchView = findViewById(R.id.search);
+        searchView.clearFocus();
 
         //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         //mapFragment.getMapAsync(this);
 
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         getLocation();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                String loc = searchView.getQuery().toString();
+                if (loc == null){
+                    Toast.makeText(MapActivity.this, "Location Not Found", Toast.LENGTH_SHORT).show();
+                } else {
+                    Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
+                    try {
+                        List<Address> addressList = geocoder.getFromLocationName(loc, 1);
+                        if (addressList.size() > 0){
+                            LatLng latLng = new LatLng(addressList.get(0).getLatitude(),addressList.get(0).getLongitude());
+                            if (marker != null){
+                                marker.remove();
+                            }
+                            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(loc);
+                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,5);
+                            gMap.animateCamera(cameraUpdate);
+                            marker = gMap.addMarker(markerOptions);
+                        }
+                    } catch (IOException e){
+                        e.printStackTrace();
+                    }
+                }
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
     }
 
     private void getLocation(){
@@ -76,7 +113,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
-        //this.gMap = googleMap;
+        this.gMap = googleMap;
         //LatLng mapBraga = new LatLng(41.5518,-8.4229);
         //this.gMap.addMarker(new MarkerOptions().position(mapBraga).title("Marker in Braga"));
         //this.gMap.moveCamera(CameraUpdateFactory.newLatLng(mapBraga));
