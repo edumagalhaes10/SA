@@ -25,5 +25,6 @@
         android:focusable="false"
         app:closeIcon="@drawable/baseline_clear_24"
         app:searchIcon="@drawable/marker"
+        android:padding="7dp"
         android:background="@drawable/blue_border"/>
 </RelativeLayout>
