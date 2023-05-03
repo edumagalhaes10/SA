@@ -4,20 +4,26 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
+import android.widget.ZoomControls;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
@@ -27,6 +33,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -40,9 +47,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     GoogleMap gMap;
     Marker marker;
     SearchView searchView;
-    //ZoomButtonsController zoom_buttons_toggle;
+    ImageView gps;
     private static final float DEFAULT_ZOOM = 15f;
-    private UiSettings mUiSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +57,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
         map = findViewById(R.id.map);
         searchView = findViewById(R.id.search);
-        //zoom_buttons_toggle = findViewById(R.id.zoom_buttons_toggle);
+        gps = findViewById(R.id.icon_gps);
         searchView.clearFocus();
 
         //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -64,37 +70,45 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             @Override
             public boolean onQueryTextSubmit(String query) {
                 String loc = searchView.getQuery().toString();
-                if (loc == null){
+                if (loc == null) {
                     Toast.makeText(MapActivity.this, "Location Not Found", Toast.LENGTH_SHORT).show();
                 } else {
                     Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
                     try {
                         List<Address> addressList = geocoder.getFromLocationName(loc, 1);
-                        if (addressList.size() > 0){
-                            LatLng latLng = new LatLng(addressList.get(0).getLatitude(),addressList.get(0).getLongitude());
-                            if (marker != null){
+                        if (addressList.size() > 0) {
+                            LatLng latLng = new LatLng(addressList.get(0).getLatitude(), addressList.get(0).getLongitude());
+                            if (marker != null) {
                                 marker.remove();
                             }
                             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(loc);
-                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM);
+                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(217.0f)); // @color/myblue - 217.0f; @color/mygold - 46.0f
+                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM);
                             gMap.animateCamera(cameraUpdate);
                             marker = gMap.addMarker(markerOptions);
                         }
-                    } catch (IOException e){
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
                 return false;
             }
+
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
             }
         });
+
+        gps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocation();
+            }
+        });
     }
 
-    private void getLocation(){
+    private void getLocation() {
         if (ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(
@@ -128,9 +142,13 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("My Current Location");
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
-        //mUiSettings.setZoomControlsEnabled(isChecked(R.id.zoom_buttons_toggle));
-        //mUiSettings.setCompassEnabled(isChecked(R.id.compass_toggle));
         googleMap.addMarker(markerOptions);
+        gMap.getUiSettings().setZoomControlsEnabled(true);
+        //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        //    return;
+        //}
+        //gMap.setMyLocationEnabled(true);
+        //gMap.getUiSettings().setMyLocationButtonEnabled(true);
 
     }
 
