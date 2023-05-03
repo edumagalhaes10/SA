@@ -12,6 +12,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -19,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -38,6 +40,9 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     GoogleMap gMap;
     Marker marker;
     SearchView searchView;
+    //ZoomButtonsController zoom_buttons_toggle;
+    private static final float DEFAULT_ZOOM = 15f;
+    private UiSettings mUiSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +51,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
         map = findViewById(R.id.map);
         searchView = findViewById(R.id.search);
+        //zoom_buttons_toggle = findViewById(R.id.zoom_buttons_toggle);
         searchView.clearFocus();
 
         //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -70,8 +76,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
                                 marker.remove();
                             }
                             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(loc);
-                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,5);
+                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng,DEFAULT_ZOOM);
                             gMap.animateCamera(cameraUpdate);
                             marker = gMap.addMarker(markerOptions);
                         }
@@ -121,8 +127,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("My Current Location");
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 5));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
+        //mUiSettings.setZoomControlsEnabled(isChecked(R.id.zoom_buttons_toggle));
+        //mUiSettings.setCompassEnabled(isChecked(R.id.compass_toggle));
         googleMap.addMarker(markerOptions);
+
     }
 
     @Override
@@ -131,7 +140,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         if (requestCode == REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getLocation();
+
             }
         }
     }
 }
+
+
+
