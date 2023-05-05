@@ -15,6 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout="@layout/activity_map" />
+    <!--
     <androidx.appcompat.widget.SearchView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,6 +31,28 @@
         android:paddingTop="7dp"
         android:paddingBottom="7dp"
         android:background="@drawable/blue_border"/>
+    -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        map:cardCornerRadius="30dp"
+        android:background="@color/white">
+    <fragment
+        android:id="@+id/autocomplete_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        map:iconifiedByDefault="false"
+        map:closeIcon="@drawable/baseline_clear_24"
+        map:searchIcon="@drawable/marker"
+        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+        />
+    </androidx.cardview.widget.CardView>
+
 
     <ImageView
         android:layout_width="40dp"
@@ -41,4 +64,5 @@
         android:scaleType="centerCrop"
         android:id="@+id/icon_gps"
         android:src="@drawable/icon_gps"/>
+
 </RelativeLayout>

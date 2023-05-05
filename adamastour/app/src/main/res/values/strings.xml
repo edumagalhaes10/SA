@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">AdamasTour</string>
+    <string name="google_maps_key">AIzaSyB1kaUcECNwtzz7vbaDaW-4lYv7gdd3AmE</string>
 </resources>

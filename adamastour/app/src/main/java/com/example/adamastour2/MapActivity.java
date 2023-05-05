@@ -6,6 +6,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -18,6 +19,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.ZoomControls;
 
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
@@ -33,8 +35,14 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,6 +57,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     SearchView searchView;
     ImageView gps;
     private static final float DEFAULT_ZOOM = 15f;
+    private static final String TAG = "MyActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +65,9 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         setContentView(R.layout.activity_map);
 
         map = findViewById(R.id.map);
-        searchView = findViewById(R.id.search);
+        //searchView = findViewById(R.id.search);
         gps = findViewById(R.id.icon_gps);
-        searchView.clearFocus();
+        //searchView.clearFocus();
 
         //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         //mapFragment.getMapAsync(this);
@@ -66,6 +75,50 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         getLocation();
 
+
+        // Initialize the SDK
+        Places.initialize(getApplicationContext(), getResources().getString(R.string.google_maps_key));
+
+        // Create a new PlacesClient instance
+        PlacesClient placesClient = Places.createClient(this);
+
+
+        // Initialize the AutocompleteSupportFragment.
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onError(@NonNull Status status) {
+                Log.i(TAG, "An error occurred: " + status);
+            }
+
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                LatLng latLng = place.getLatLng();
+                if(latLng == null) {
+                    Toast.makeText(MapActivity.this, "An error occurred", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (marker != null) {
+                    marker.remove();
+                }
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(place.getName());
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(217.0f)); // @color/myblue - 217.0f; @color/mygold - 46.0f
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM);
+                gMap.animateCamera(cameraUpdate);
+                marker = gMap.addMarker(markerOptions);
+            }
+
+        });
+
+
+
+        /*
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -98,7 +151,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             public boolean onQueryTextChange(String newText) {
                 return false;
             }
-        });
+        });*/
 
         gps.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,10 +187,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.gMap = googleMap;
-        //LatLng mapBraga = new LatLng(41.5518,-8.4229);
-        //this.gMap.addMarker(new MarkerOptions().position(mapBraga).title("Marker in Braga"));
-        //this.gMap.moveCamera(CameraUpdateFactory.newLatLng(mapBraga));
-
         LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions().position(latLng).title("My Current Location");
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
