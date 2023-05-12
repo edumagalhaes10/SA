@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/bottom_home"
+        android:title="Home"
+        android:icon="@drawable/baseline_person_24"/>
+
+    <item
+        android:id="@+id/bottom_map"
+        android:title="Map"
+        android:icon="@drawable/baseline_map_24"
+        />
+
+    <item
+        android:title=""/>
+
+    <item
+        android:id="@+id/bottom_suggestions"
+        android:title="Suggestions"
+        android:icon="@drawable/baseline_star_24" />
+    <item
+        android:id="@+id/bottom_wishlist"
+        android:title="WishList"
+        android:icon="@drawable/baseline_favorite_24" />
+
+</menu>

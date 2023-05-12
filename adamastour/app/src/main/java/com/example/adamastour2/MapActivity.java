@@ -3,19 +3,29 @@ package com.example.adamastour2;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.ZoomControls;
 
@@ -26,7 +36,9 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.OnMapsSdkInitializedCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -40,6 +52,8 @@ import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -48,6 +62,8 @@ import java.util.Locale;
 
 public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    FloatingActionButton fab;
+    DrawerLayout drawerLayout;
     Location currentLocation;
     FusedLocationProviderClient fusedClient;
     private static final int REQUEST_CODE = 101;
@@ -63,6 +79,32 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+
+        fab = findViewById(R.id.fab);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView.setSelectedItemId(R.id.bottom_map);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            switch (item.getItemId()){
+                case R.id.bottom_home:
+                    drawerLayout.openDrawer(GravityCompat.START);
+                    return true;
+                case R.id.bottom_map:
+                    return true;
+                case R.id.bottom_suggestions:
+                    startActivity(new Intent(getApplicationContext(), SuggestionsActivity.class));
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+                    finish();
+                    return true;
+                case R.id.bottom_wishlist:
+                    startActivity(new Intent(getApplicationContext(), WishlistActivity.class));
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_in_left);
+                    finish();
+                    return true;
+            }
+            return false;
+        });
 
         map = findViewById(R.id.map);
         //searchView = findViewById(R.id.search);
@@ -118,47 +160,39 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
 
 
-        /*
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                String loc = searchView.getQuery().toString();
-                if (loc == null) {
-                    Toast.makeText(MapActivity.this, "Location Not Found", Toast.LENGTH_SHORT).show();
-                } else {
-                    Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
-                    try {
-                        List<Address> addressList = geocoder.getFromLocationName(loc, 1);
-                        if (addressList.size() > 0) {
-                            LatLng latLng = new LatLng(addressList.get(0).getLatitude(), addressList.get(0).getLongitude());
-                            if (marker != null) {
-                                marker.remove();
-                            }
-                            MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(loc);
-                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(217.0f)); // @color/myblue - 217.0f; @color/mygold - 46.0f
-                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM);
-                            gMap.animateCamera(cameraUpdate);
-                            marker = gMap.addMarker(markerOptions);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });*/
-
         gps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getLocation();
             }
         });
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showBottomDialog();
+            }
+        });
+    }
+
+    private void showBottomDialog() {
+
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.bottomsheetlayout);
+
+        LinearLayout nomeLayout = dialog.findViewById(R.id.layoutNome);
+        LinearLayout moradaLayout = dialog.findViewById(R.id.layoutMorada);
+        LinearLayout outrosLayout = dialog.findViewById(R.id.layoutOutros);
+
+        // TODO : PREENCHER COM API PLACES - info sítios
+
+
+        dialog.show();
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        dialog.getWindow().setGravity(Gravity.BOTTOM);
+
     }
 
     private void getLocation() {

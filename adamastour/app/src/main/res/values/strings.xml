@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">AdamasTour</string>
-    <string name="google_maps_key">AIzaSyB1kaUcECNwtzz7vbaDaW-4lYv7gdd3AmE</string>
+    <string name="google_maps_key">AIzaSyDeqL5B1QhvSQnC8Jq-3HyQ_dCuq3wq8_k</string>
+    <string name="title_activity_suggestions">SuggestionsActivity</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <!-- edu = "AIzaSyCpiEiPJ3DiWs675xHbLlpG0J930CHLBhQ"-->
 </resources>
