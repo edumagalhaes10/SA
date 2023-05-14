@@ -1,6 +1,7 @@
 package com.example.adamastour2;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
@@ -10,6 +11,7 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -17,6 +19,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -31,6 +34,9 @@ import android.widget.ZoomControls;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -42,9 +48,11 @@ import com.google.android.gms.maps.OnMapsSdkInitializedCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
@@ -56,24 +64,35 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
+    // layout variables
     FloatingActionButton fab;
     DrawerLayout drawerLayout;
-    Location currentLocation;
-    FusedLocationProviderClient fusedClient;
-    private static final int REQUEST_CODE = 101;
     FrameLayout map;
-    GoogleMap gMap;
-    Marker marker;
-    SearchView searchView;
     ImageView gps;
+
+    // maps and location service variables
+    GoogleMap gMap;
+    FusedLocationProviderClient fusedClient;
+    Location currentLocation;
+    Marker marker;
     private static final float DEFAULT_ZOOM = 15f;
-    private static final String TAG = "MyActivity";
+
+    // geofencing variables
+    private GeofencingClient geofencingClient;
+    private GeofenceHelper geofenceHelper;
+    private float GEOFENCE_RADIUS = 200;
+    private String GEOFENCE_ID = "SOME_GEOFENCE_ID";
+
+
+    private static final int REQUEST_CODE = 101;
+    private static final String TAG = "MapActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +105,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.bottom_map);
         bottomNavigationView.setOnItemSelectedListener(item -> {
-            switch (item.getItemId()){
+            switch (item.getItemId()) {
                 case R.id.bottom_home:
                     drawerLayout.openDrawer(GravityCompat.START);
                     return true;
@@ -107,32 +126,23 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         });
 
         map = findViewById(R.id.map);
-        //searchView = findViewById(R.id.search);
         gps = findViewById(R.id.icon_gps);
-        //searchView.clearFocus();
-
-        //SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        //mapFragment.getMapAsync(this);
 
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         getLocation();
 
+        // geofencing
+        geofencingClient = LocationServices.getGeofencingClient(this);
+        geofenceHelper = new GeofenceHelper(this);
 
-        // Initialize the SDK
+
+        // for searchbar autocomplete
         Places.initialize(getApplicationContext(), getResources().getString(R.string.google_maps_key));
-
-        // Create a new PlacesClient instance
         PlacesClient placesClient = Places.createClient(this);
-
-
-        // Initialize the AutocompleteSupportFragment.
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-
-        // Specify the types of place data to return.
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
 
-        // Set up a PlaceSelectionListener to handle the response.
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onError(@NonNull Status status) {
@@ -142,7 +152,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             @Override
             public void onPlaceSelected(@NonNull Place place) {
                 LatLng latLng = place.getLatLng();
-                if(latLng == null) {
+                if (latLng == null) {
                     Toast.makeText(MapActivity.this, "An error occurred", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -157,7 +167,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             }
 
         });
-
 
 
         gps.setOnClickListener(new View.OnClickListener() {
@@ -188,7 +197,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
 
         dialog.show();
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         dialog.getWindow().setGravity(Gravity.BOTTOM);
@@ -226,12 +235,15 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM));
         googleMap.addMarker(markerOptions);
+        googleMap.setPadding(0, 0, 0, 200); // to make zoom controls visible
         gMap.getUiSettings().setZoomControlsEnabled(true);
         //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         //    return;
         //}
         //gMap.setMyLocationEnabled(true);
         //gMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+        gMap.setOnMapLongClickListener(this);
 
     }
 
@@ -244,6 +256,63 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
             }
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    @Override
+    public void onMapLongClick(@NonNull LatLng latLng) {
+        //gMap.clear();
+        addMarker(latLng);
+        addCircle(latLng, GEOFENCE_RADIUS);
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            addGeofence(latLng, GEOFENCE_RADIUS);
+        //}
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void addGeofence(LatLng latLng, float radius) {
+        Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT); //mudar id para o nome dos monumentos
+        GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
+        PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
+
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE);
+            return;
+        } // list.forEach(coordinate -> tryAddingGeofence(coordinate))
+        geofencingClient.addGeofences(geofencingRequest, pendingIntent)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, "onSuccess: Geofence added...");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        String errorMessage = geofenceHelper.getErrorString(e);
+                        Log.d(TAG, "onFailure: " + errorMessage);
+                    }
+                });
+    }
+
+    private void addMarker(LatLng latLng){
+        MarkerOptions markerOptions = new MarkerOptions().position(latLng);
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(46.0f));
+        gMap.addMarker(markerOptions);
+    }
+
+    private void addCircle(LatLng latLng, float radius) {
+        CircleOptions circleOptions = new CircleOptions();
+        circleOptions.center(latLng);
+        circleOptions.radius(radius);
+        circleOptions.strokeColor(Color.argb(255, 212, 175, 55)); //myblue: R-35|G-57|B-93 ;  mygold: R-212|G-175|B-55
+        circleOptions.fillColor(Color.argb(64, 212, 175, 55));
+        circleOptions.strokeWidth(4);
+        gMap.addCircle(circleOptions);
     }
 }
 

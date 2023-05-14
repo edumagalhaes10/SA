@@ -33,7 +33,7 @@
             android:orientation="vertical"
             android:layout_gravity="center_horizontal"
             android:padding="24dp"
-            android:background="@drawable/custom_edittext">
+            android:background="@drawable/blue_border">
 
             <!-- <TextView
                  android:layout_width="match_parent"
