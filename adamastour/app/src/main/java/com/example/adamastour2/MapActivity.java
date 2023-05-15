@@ -93,12 +93,18 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
     private static final int FINE_LOCATION_REQUEST_CODE = 101;
     private static final int BACKGROUND_LOCATION_REQUEST_CODE = 102;
+    private static final int NOTIFICATION_REQUEST_CODE = 103;
     private static final String TAG = "MapActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        // to notify user of geofences (points of interest)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_REQUEST_CODE);
+        }
 
 
         fab = findViewById(R.id.fab);
@@ -264,6 +270,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 Toast.makeText(this, "You can add geofences", Toast.LENGTH_SHORT).show();
             } else
                 Toast.makeText(this, "Background location access is necessary for geofences to trigger!", Toast.LENGTH_SHORT).show();
+        }
+        if (requestCode == NOTIFICATION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "You will get notified of geofences", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
