@@ -91,7 +91,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     private String GEOFENCE_ID = "SOME_GEOFENCE_ID";
 
 
-    private static final int REQUEST_CODE = 101;
+    private static final int FINE_LOCATION_REQUEST_CODE = 101;
+    private static final int BACKGROUND_LOCATION_REQUEST_CODE = 102;
     private static final String TAG = "MapActivity";
 
     @Override
@@ -209,8 +210,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            return;
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_REQUEST_CODE);
+            //return;
         }
         Task<Location> task = fusedClient.getLastLocation();
         task.addOnSuccessListener(new OnSuccessListener<Location>() {
@@ -227,6 +228,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         });
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         this.gMap = googleMap;
@@ -240,49 +242,66 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         //if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         //    return;
         //}
-        //gMap.setMyLocationEnabled(true);
+        gMap.setMyLocationEnabled(true);
         //gMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         gMap.setOnMapLongClickListener(this);
 
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE) {
+        if (requestCode == FINE_LOCATION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getLocation();
-
+                //gMap.setMyLocationEnabled(true);
             }
+        }
+        if (requestCode == BACKGROUND_LOCATION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "You can add geofences", Toast.LENGTH_SHORT).show();
+            } else
+                Toast.makeText(this, "Background location access is necessary for geofences to trigger!", Toast.LENGTH_SHORT).show();
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     public void onMapLongClick(@NonNull LatLng latLng) {
+
+        if (Build.VERSION.SDK_INT >= 29) {
+            // We need background permission
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                tryAddingGeofence(latLng);
+            } else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_REQUEST_CODE);
+                } else
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_REQUEST_CODE);
+            }
+
+        } else {
+            tryAddingGeofence(latLng);
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private void tryAddingGeofence(LatLng latLng) {
         //gMap.clear();
         addMarker(latLng);
         addCircle(latLng, GEOFENCE_RADIUS);
-        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            addGeofence(latLng, GEOFENCE_RADIUS);
-        //}
+        addGeofence(latLng, GEOFENCE_RADIUS);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
+
+    @SuppressLint("MissingPermission")
     private void addGeofence(LatLng latLng, float radius) {
         Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT); //mudar id para o nome dos monumentos
         GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
         PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
 
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, REQUEST_CODE);
-            return;
-        } // list.forEach(coordinate -> tryAddingGeofence(coordinate))
+         // list.forEach(coordinate -> tryAddingGeofence(coordinate))
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
