@@ -39,23 +39,15 @@ import cz.msebera.android.httpclient.Header;
 public class SuggestionsActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     String APP_ID = "3d6bd889ce3a72e1937ebe70f328d97a";
-    String URL = "https://api.openweathermap.org/data/2.5/weather?";
+    String WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?";
+    String POLLUTION_URL = "https://api.openweathermap.org/data/2.5/air_pollution?";
 
     FusedLocationProviderClient fusedClient;
     Location currentLocation;
-    private static final long MIN_TIME = 5000;
-    private static final float MIN_DISTANCE = 1000;
-    private static final int WEATHER_REQUEST_CODE = 1001;
     private static final String TAG = "WeatherActivity";
 
-
-    String Location_Provider = LocationManager.GPS_PROVIDER;
-    TextView cityName, weatherState, temperature;
-    ImageView weatherIcon;
-
-
-    LocationManager locationManager;
-    LocationListener locationListener;
+    TextView cityName, weatherState, temperature, aqi;
+    ImageView weatherIcon, pollutionIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,15 +85,10 @@ public class SuggestionsActivity extends AppCompatActivity {
         temperature = findViewById(R.id.temperature);
         weatherIcon = findViewById(R.id.weathericon);
         cityName = findViewById(R.id.city);
+        aqi = findViewById(R.id.aqi);
+        pollutionIcon = findViewById(R.id.pollutionicon);
 
-        getWeatherForCurrentLocation(currentLocation);
     }
-
-    //@Override
-    //protected void onResume() {
-    //    super.onResume();
-    //    getWeatherForCurrentLocation();
-    //}
 
     private void getLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -114,34 +101,15 @@ public class SuggestionsActivity extends AppCompatActivity {
                 if (location != null) {
                     currentLocation = location;
                     Log.d(TAG, currentLocation.toString());
+                    getDataForCurrentLocation(currentLocation);
+
                 }
             }
         });
     }
 
 
-    private void getWeatherForCurrentLocation(Location currentLocation) {
-        //locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        //locationListener = new LocationListener() {
-        //    @Override
-        //    public void onLocationChanged(@NonNull Location location) {
-        //        String lat = String.valueOf(location.getLatitude());
-        //        String lng = String.valueOf(location.getLongitude());
-//
-        //        RequestParams params = new RequestParams();
-        //        params.put("lat", lat);
-        //        params.put("lng", lng);
-        //        params.put("appid", APP_ID);
-        //        network(params);
-        //    }
-        //};
-//
-        //if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-        //    ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},FINE_LOCATION_REQUEST_CODE);
-        //    return;
-        //}
-        //locationManager.requestLocationUpdates(Location_Provider, MIN_TIME, MIN_DISTANCE, locationListener);
-
+    private void getDataForCurrentLocation(Location currentLocation) {
         String lat, lng;
 
         if(currentLocation != null) {
@@ -149,25 +117,27 @@ public class SuggestionsActivity extends AppCompatActivity {
             lng = String.valueOf(currentLocation.getLongitude());
         } else {
             lat = "41.5518";
-            lng = "-8.4229"; // coordenadas de braga
+            lng = "-8.4229"; // coordenadas de braga - default
         }
 
+        //RequestParams params = new RequestParams();
+        //params.put("lat", lat);
+        //params.put("lng", lng);
+        //params.put("appid", APP_ID);
+        //network(params);
 
+        WEATHER_URL = WEATHER_URL + "lat=" + lat + "&lon=" + lng + "&appid=" + APP_ID;
+        POLLUTION_URL = POLLUTION_URL + "lat=" + lat + "&lon=" + lng + "&appid=" + APP_ID;
 
-        RequestParams params = new RequestParams();
-        params.put("lat", lat);
-        params.put("lng", lng);
-        params.put("appid", APP_ID);
-        network(params);
-
-        URL = URL + "lat=" + lat + "&lon=" + lng + "&appid=" + APP_ID;
-
-        Log.d(TAG, "URL: " + URL);
+        Log.d(TAG, "URL: " + WEATHER_URL);
+        Log.d(TAG, "URL: " + POLLUTION_URL);
+        network();
     }
 
-    private void network (RequestParams params) {
+    private void network () {
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get("https://api.openweathermap.org/data/2.5/weather?lat=41.5518&lon=-8.4229&appid=3d6bd889ce3a72e1937ebe70f328d97a",new JsonHttpResponseHandler() { //URL,params
+
+        client.get(WEATHER_URL,new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 //super.onSuccess(statusCode, headers, response);
@@ -183,6 +153,23 @@ public class SuggestionsActivity extends AppCompatActivity {
                 Log.d(TAG, "Didn't get data from Weather API");
             }
         });
+
+        client.get(POLLUTION_URL,new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                //super.onSuccess(statusCode, headers, response);
+                Log.d(TAG, "Got data from Pollution API");
+
+                PollutionData pollutionData = PollutionData.fromJson(response);
+                updateUIPol(pollutionData);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                //super.onFailure(statusCode, headers, throwable, errorResponse);
+                Log.d(TAG, "Didn't get data from Pollution API");
+            }
+        });
     }
 
     private void updateUI(WeatherData weatherData) {
@@ -194,13 +181,12 @@ public class SuggestionsActivity extends AppCompatActivity {
         weatherIcon.setImageResource(resourceID);
     }
 
-    //@Override
-    //protected void onPause() {
-    //    super.onPause();
-    //    if(locationManager != null) {
-    //        locationManager.removeUpdates(locationListener);
-    //    }
-    //}
+    private void updateUIPol(PollutionData pollutionData) {
+
+        aqi.setText(pollutionData.getAqi());
+        int resourceID = getResources().getIdentifier(pollutionData.getIcon(), "drawable", getPackageName());
+        pollutionIcon.setImageResource(resourceID);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

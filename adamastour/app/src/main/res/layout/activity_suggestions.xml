@@ -14,60 +14,147 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/myblue">
-    
+
+    <!-- Weather widget -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
         android:background="@drawable/weather_background"
         android:orientation="vertical"
         android:id="@+id/weather">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="100dp"
-            android:layout_margin="10dp"
-            android:id="@+id/weathericon"
-            android:src="@drawable/adamastour_logo"
-            android:layout_marginTop="20dp"/>
-
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/temperature"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
+            android:padding="15dp"
             android:textColor="@color/black"
-            android:text="0ºC"/>
+            android:text="Meteorology"/>
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/weatherCondition"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:textColor="@color/black"
-            android:text="______"/>
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="15dp"
+            android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/city"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:paddingBottom="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="10dp"
-            android:paddingStart="30dp"
-            android:textColor="@color/black"
-            android:text="City"/>
+            <ImageView
+                android:id="@+id/weathericon"
+                android:layout_width="150dp"
+                android:layout_height="110dp"
+                android:src="@drawable/adamastour_logo" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/temperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:text="0ºC"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/weatherCondition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:text="______"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/city"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="20dp"
+                    android:paddingTop="15dp"
+                    android:paddingEnd="10dp"
+                    android:text="City"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- Pollution widget -->
+    <LinearLayout
+        android:id="@+id/pollution"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/weather"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/weather_background"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:text="Pollution"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="15dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/pollutionicon"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/adamastour_logo" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Air Quality Level:"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/aqi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="20dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="-/5"
+                    android:textColor="@color/black"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
     <!--
     <ListView
         android:layout_width="match_parent"
@@ -110,7 +197,7 @@
 
 </RelativeLayout>
 
-<!--
+
 <com.google.android.material.navigation.NavigationView
 android:layout_width="wrap_content"
 android:layout_height="match_parent"
@@ -120,6 +207,6 @@ app:headerLayout="@layout/nav_header"
 app:menu="@menu/nav_menu"
 app:itemIconTint="@color/myblue"
 app:itemTextColor="@color/myblue"/>
--->
+
 
 </androidx.drawerlayout.widget.DrawerLayout>

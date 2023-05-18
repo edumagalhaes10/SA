@@ -13,7 +13,7 @@ public class WeatherData {
             WeatherData weatherData = new WeatherData();
             weatherData.city=jsonObject.getString("name");
             weatherData.condition=jsonObject.getJSONArray("weather").getJSONObject(0).getInt("id");
-            weatherData.weatherType=jsonObject.getJSONArray("weather").getJSONObject(0).getString("main");
+            weatherData.weatherType=jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
             weatherData.icon=updateWeatherIcon(weatherData.condition);
 
             double tempResult = jsonObject.getJSONObject("main").getDouble("temp")-273.15;
@@ -63,7 +63,7 @@ public class WeatherData {
             return "overcast";
         }
 
-        return "dunno";
+        return "adamastour_logo";
     }
 
     public String getTemperature() {
