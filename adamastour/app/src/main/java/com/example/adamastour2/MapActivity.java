@@ -91,7 +91,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     private String GEOFENCE_ID = "SOME_GEOFENCE_ID";
 
 
-    private static final int FINE_LOCATION_REQUEST_CODE = 101;
+    static final int FINE_LOCATION_REQUEST_CODE = 101;
     private static final int BACKGROUND_LOCATION_REQUEST_CODE = 102;
     private static final int NOTIFICATION_REQUEST_CODE = 103;
     private static final String TAG = "MapActivity";
@@ -255,7 +255,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
     }
 
-    @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -308,7 +307,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
     @SuppressLint("MissingPermission")
     private void addGeofence(LatLng latLng, float radius) {
-        Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT); //mudar id para o nome dos monumentos
+        //TODO mudar id para o nome dos monumentos
+        Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
         PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
 

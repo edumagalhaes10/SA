@@ -52,6 +52,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.android.libraries.places:places:3.1.0'
+    implementation 'com.loopj.android:android-async-http:1.4.11'
     implementation 'androidx.work:work-runtime:2.8.1'
 
     //retrofit
