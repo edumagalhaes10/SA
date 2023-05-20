@@ -2,6 +2,7 @@ package com.example.adamastour2;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
@@ -23,15 +24,18 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ZoomControls;
 
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -57,11 +61,14 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -74,7 +81,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class MapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+public class MapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, NavigationView.OnNavigationItemSelectedListener {
 
     // layout variables
     FloatingActionButton fab;
@@ -101,6 +113,10 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     private static final int NOTIFICATION_REQUEST_CODE = 103;
     private static final String TAG = "MapActivity";
     private DatabaseReference database;
+    PlacesClient placesClient;
+
+    TextView placeName, placeAddress, placeRating;
+    ImageView placeIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +131,18 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
         fab = findViewById(R.id.fab);
         drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.nav_logout:
+
+                    FirebaseAuth.getInstance().signOut();
+                    return true;
+
+            }
+            return false;
+        });
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.bottom_map);
         bottomNavigationView.setOnItemSelectedListener(item -> {
@@ -151,10 +179,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
         // for searchbar autocomplete
         Places.initialize(getApplicationContext(), getResources().getString(R.string.google_maps_key));
-        PlacesClient placesClient = Places.createClient(this);
+        placesClient = Places.createClient(this);
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -194,6 +223,21 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 showBottomDialog();
             }
         });
+    }
+
+    //private void updateUIInfo(Place place) {
+//
+    //    placeName.setText(place.getName());
+    //    placeAddress.setText(place.getAddress());
+    //    placeRating.setText(place.getIconUrl());
+    //    place.
+    //    int resourceID = getResources().getIdentifier(weatherData.getIcon(), "drawable", getPackageName());
+    //    weatherIcon.setImageResource(resourceID);
+    //}
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        return false;
     }
 
     private void showBottomDialog() {
@@ -257,7 +301,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         gMap.setMyLocationEnabled(true);
         //gMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-        gMap.setOnMapLongClickListener(this);
+        //gMap.setOnMapLongClickListener(this);
 
         database = FirebaseDatabase.getInstance().getReference("Points of Interest");
 
@@ -266,8 +310,54 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                     String name = childSnapshot.child("name").getValue(String.class);
+                    String city = childSnapshot.child("city").getValue(String.class);
                     String lat = childSnapshot.child("lat").getValue(String.class);
                     String lng = childSnapshot.child("long").getValue(String.class);
+
+                    String place = name + "," + city;
+
+                    //OkHttpClient client = new OkHttpClient().newBuilder().build();
+                    //HttpUrl.Builder urlBuilder = HttpUrl.parse("https://maps.googleapis.com/maps/api/place/textsearch/json").newBuilder();
+                    //urlBuilder.addQueryParameter("query", name); // Replace "Your Place Name" with the actual place name you want to search for
+                    //urlBuilder.addQueryParameter("key", getResources().getString(R.string.google_maps_key)); // Replace "YOUR_API_KEY" with your Google API key
+                    //String url = urlBuilder.build().toString();
+                    //Log.d(TAG, url);
+//
+                    //Request request = new Request.Builder()
+                    //        .url(url)
+                    //        .method("GET", null)
+                    //        .build();
+//
+                    //try {
+                    //    Response response = client.newCall(request).execute();
+                    //    String responseBody = response.body().string();
+                    //    Log.d(TAG, responseBody);
+                    //    // Process the response body here
+                    //} catch (IOException e) {
+                    //    e.printStackTrace();
+                    //}
+
+                    //// Define a Place ID.
+                    //final String placeId = name;
+//
+// Specify the field//s to return.
+                    //final List<Place.Field> placeFields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+//
+// Construct a reque//st object, passing the place ID and fields array.
+                    //final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
+//
+                    //placesClient.fetchPlace(request).addOnSuccessListener((response) -> {
+                    //    Place place1 = response.getPlace();
+                    //    Log.i(TAG, "Place found: " + place1.getName());
+                    //}).addOnFailureListener((exception) -> {
+                    //    if (exception instanceof ApiException) {
+                    //        final ApiException apiException = (ApiException) exception;
+                    //        Log.e(TAG, "Place not found: " + exception.getMessage());
+                    //        final int statusCode = apiException.getStatusCode();
+                    //        // TODO: Handle error with given status code.
+                    //    }
+                    //});
+
 
                     LatLng newgeo = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
                     tryAddingGeofence(newgeo);
@@ -373,6 +463,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         circleOptions.strokeWidth(4);
         gMap.addCircle(circleOptions);
     }
+
+
 }
 
 
