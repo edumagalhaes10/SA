@@ -62,6 +62,11 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -95,6 +100,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     private static final int BACKGROUND_LOCATION_REQUEST_CODE = 102;
     private static final int NOTIFICATION_REQUEST_CODE = 103;
     private static final String TAG = "MapActivity";
+    private DatabaseReference database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -252,6 +258,29 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         //gMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         gMap.setOnMapLongClickListener(this);
+
+        database = FirebaseDatabase.getInstance().getReference("Points of Interest");
+
+        database.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
+                    String name = childSnapshot.child("name").getValue(String.class);
+                    String lat = childSnapshot.child("lat").getValue(String.class);
+                    String lng = childSnapshot.child("long").getValue(String.class);
+
+                    LatLng newgeo = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
+                    tryAddingGeofence(newgeo);
+                    Log.d(TAG, name);
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MapActivity.this, "Unable to load geofences", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 

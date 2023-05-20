@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AdamasTour2"
 include ':app'
+include ':admin'
