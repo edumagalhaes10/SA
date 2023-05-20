@@ -41,85 +41,55 @@
 
         <ImageView
             android:layout_width="40dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal|end"
+            android:layout_height="40dp"
+            android:layout_gravity="end|bottom"
             android:layout_marginStart="150dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/baseline_star_border_24" />
+            android:src="@drawable/baseline_favorite_border_24" />
 
     </LinearLayout>
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/place_image"
+        android:src="@drawable/adamastour_logo"/>
 
-    <LinearLayout
+
+    <TextView
         android:id="@+id/layoutNome"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:padding="10dp">
+        android:layout_marginStart="30dp"
+        android:padding="10dp"
+        android:text="Nome"
+        android:textColor="@color/myblue"
+        android:textSize="16sp"/>
 
-        <!--<ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_upload_24"/>
-        -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nome"
-            android:textColor="@color/myblue"
-            android:layout_marginLeft="30dp"
-            android:textSize="16sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
+    <TextView
         android:id="@+id/layoutMorada"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp">
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="30dp"
+        android:padding="10dp"
+        android:text="Morada"
+        android:textColor="@color/myblue"
+        android:textSize="16sp"/>
 
-
-        <!--<ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_whatshot_24"/>
-        -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Morada"
-            android:textColor="@color/myblue"
-            android:layout_marginLeft="30dp"
-            android:textSize="16sp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
+    <TextView
         android:id="@+id/layoutOutros"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="30dp">
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="30dp"
+        android:padding="10dp"
+        android:text="Outros"
+        android:textColor="@color/myblue"
+        android:textSize="16sp"/>
 
 
-        <!--<ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_vibration_24"/>
-        -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="outro"
-            android:textColor="@color/myblue"
-            android:layout_marginLeft="30dp"
-            android:textSize="16sp"/>
-
-    </LinearLayout>
 
 </LinearLayout>
