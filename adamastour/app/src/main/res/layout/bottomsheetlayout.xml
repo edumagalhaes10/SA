@@ -39,6 +39,13 @@
             android:layout_marginTop="5dp"
             android:textSize="20sp" />
 
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal|end"
+            android:layout_marginStart="150dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/baseline_star_border_24" />
 
     </LinearLayout>
 
