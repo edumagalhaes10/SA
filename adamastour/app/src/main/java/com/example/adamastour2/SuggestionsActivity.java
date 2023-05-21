@@ -28,6 +28,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -46,7 +49,7 @@ public class SuggestionsActivity extends AppCompatActivity {
     Location currentLocation;
     private static final String TAG = "WeatherActivity";
 
-    TextView cityName, weatherState, temperature, aqi;
+    TextView cityName, weatherState, temperature, aqi, drawerEmail;
     ImageView weatherIcon, pollutionIcon;
 
     @Override
@@ -58,6 +61,27 @@ public class SuggestionsActivity extends AppCompatActivity {
         getLocation();
 
         drawerLayout = findViewById(R.id.drawer_layout);
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        drawerEmail = navigationView.getHeaderView(0).findViewById(R.id.drawerEmail);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String email = user.getEmail();
+            drawerEmail.setText(email);
+            //String name = user.getDisplayName();
+            //Uri photoUrl = user.getPhotoUrl();
+        }
+        navigationView.setNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.nav_logout:
+                    FirebaseAuth.getInstance().signOut();
+                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                    return true;
+
+            }
+            return false;
+        });
+
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.bottom_suggestions);
         bottomNavigationView.setOnItemSelectedListener(item -> {

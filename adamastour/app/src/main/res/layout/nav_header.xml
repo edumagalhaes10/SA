@@ -27,5 +27,6 @@
         android:text="email"
         android:textColor="@color/white"
         android:textSize="14sp"
+        android:id="@+id/drawerEmail"
         android:layout_marginBottom="16dp"/>
 </LinearLayout>

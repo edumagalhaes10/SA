@@ -70,6 +70,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -116,7 +117,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     private DatabaseReference database;
     PlacesClient placesClient;
 
-    TextView placeName, placeAddress, placeRating;
+    TextView placeName, placeAddress, placeRating, drawerEmail;
     ImageView placeIcon;
 
     @Override
@@ -132,17 +133,28 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
         fab = findViewById(R.id.fab);
         drawerLayout = findViewById(R.id.drawer_layout);
+
         NavigationView navigationView = findViewById(R.id.nav_view);
+        drawerEmail = navigationView.getHeaderView(0).findViewById(R.id.drawerEmail);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            String email = user.getEmail();
+            drawerEmail.setText(email);
+            //String name = user.getDisplayName();
+            //Uri photoUrl = user.getPhotoUrl();
+        }
         navigationView.setNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.nav_logout:
-
                     FirebaseAuth.getInstance().signOut();
+                    startActivity(new Intent(getApplicationContext(), LoginActivity.class));
                     return true;
 
             }
             return false;
         });
+
+
 
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.bottom_map);
