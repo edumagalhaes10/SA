@@ -1,10 +1,6 @@
 package com.example.adamastour2;
 
-import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -18,8 +14,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,9 +28,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ZoomControls;
 
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -46,23 +38,19 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.OnMapsSdkInitializedCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
@@ -77,16 +65,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, NavigationView.OnNavigationItemSelectedListener {
 
@@ -136,10 +115,24 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         drawerEmail = navigationView.getHeaderView(0).findViewById(R.id.drawerEmail);
+        MenuItem drawerPoints = navigationView.getMenu().findItem(R.id.nav_points);
+        //drawerPoints = navigationView.findViewById(R.id.nav_points);
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String email = user.getEmail();
+            String sanitizedEmail = email.replaceAll("[.#$\\[\\]]", "");
+            updateGamificationPoints(sanitizedEmail, new OnPointsUpdatedListener() {
+                @Override
+                public void onPointsUpdated(int points) {
+                    // Handle the updated points value here
+                    // You can use the 'points' value returned from the callback
+                    String pontos = points + " Points";
+                    drawerPoints.setTitle(pontos);
+                    Log.d("firebase", "Updated points: " + points);
+                }
+            });
             drawerEmail.setText(email);
+
             //String name = user.getDisplayName();
             //Uri photoUrl = user.getPhotoUrl();
         }
@@ -330,49 +323,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
                     String place = name + "," + city;
 
-                    //OkHttpClient client = new OkHttpClient().newBuilder().build();
-                    //HttpUrl.Builder urlBuilder = HttpUrl.parse("https://maps.googleapis.com/maps/api/place/textsearch/json").newBuilder();
-                    //urlBuilder.addQueryParameter("query", name); // Replace "Your Place Name" with the actual place name you want to search for
-                    //urlBuilder.addQueryParameter("key", getResources().getString(R.string.google_maps_key)); // Replace "YOUR_API_KEY" with your Google API key
-                    //String url = urlBuilder.build().toString();
-                    //Log.d(TAG, url);
-//
-                    //Request request = new Request.Builder()
-                    //        .url(url)
-                    //        .method("GET", null)
-                    //        .build();
-//
-                    //try {
-                    //    Response response = client.newCall(request).execute();
-                    //    String responseBody = response.body().string();
-                    //    Log.d(TAG, responseBody);
-                    //    // Process the response body here
-                    //} catch (IOException e) {
-                    //    e.printStackTrace();
-                    //}
-
-                    //// Define a Place ID.
-                    //final String placeId = name;
-//
-// Specify the field//s to return.
-                    //final List<Place.Field> placeFields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
-//
-// Construct a reque//st object, passing the place ID and fields array.
-                    //final FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, placeFields);
-//
-                    //placesClient.fetchPlace(request).addOnSuccessListener((response) -> {
-                    //    Place place1 = response.getPlace();
-                    //    Log.i(TAG, "Place found: " + place1.getName());
-                    //}).addOnFailureListener((exception) -> {
-                    //    if (exception instanceof ApiException) {
-                    //        final ApiException apiException = (ApiException) exception;
-                    //        Log.e(TAG, "Place not found: " + exception.getMessage());
-                    //        final int statusCode = apiException.getStatusCode();
-                    //        // TODO: Handle error with given status code.
-                    //    }
-                    //});
-
-
                     LatLng newgeo = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
                     tryAddingGeofence(newgeo);
                     Log.d(TAG, name);
@@ -478,7 +428,38 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         gMap.addCircle(circleOptions);
     }
 
+    public void updateGamificationPoints(String sanitizedEmail, OnPointsUpdatedListener listener) {
 
+        FirebaseDatabase.getInstance().getReference("gamification_points").child(sanitizedEmail).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("Points", "Error getting data", task.getException());
+                }
+                else {
+                    DataSnapshot dataSnapshot = task.getResult();
+                    Log.d("points", "oi");
+                    if (dataSnapshot.exists()) {
+                        Log.d("points", "oi");
+                        DataSnapshot childSnapshot = dataSnapshot.child("points");
+                        if (childSnapshot.exists()) {
+                            int points = childSnapshot.getValue(Integer.class);
+                            listener.onPointsUpdated(points);
+                        } else {
+                            Log.d("Points", "Child does not exist");
+                        }
+                    } else {
+                        Log.d("Points", "Error updating user points");
+                    }
+
+                }
+            }
+        });
+    }
+
+    public interface OnPointsUpdatedListener {
+        void onPointsUpdated(int points);
+    }
 }
 
 
