@@ -71,6 +71,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -106,6 +107,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
     TextView placeName, placeAddress, placeRating, drawerEmail;
     ImageView placeIcon;
+
+    List<Geofence> geofenceList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -358,6 +361,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                     Log.d(TAG, name);
 
                 }
+                addGeofences();
             }
 
             @Override
@@ -414,16 +418,17 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     private void tryAddingGeofence(LatLng latLng, String name) {
         //gMap.clear();
         addMarker(latLng);
-        addCircle(latLng, GEOFENCE_RADIUS);
-        addGeofence(latLng, name, GEOFENCE_RADIUS);
+        //addCircle(latLng, GEOFENCE_RADIUS);
+        Geofence geofence = geofenceHelper.getGeofence(name, latLng, GEOFENCE_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
+        geofenceList.add(geofence);
+       // addGeofence(latLng, name, GEOFENCE_RADIUS);
     }
 
-
     @SuppressLint("MissingPermission")
-    private void addGeofence(LatLng latLng, String name, float radius) {
+    private void addGeofences() {
         //TODO mudar id para o nome dos monumentos
-        Geofence geofence = geofenceHelper.getGeofence(name, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
-        GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
+       // Geofence geofence = geofenceHelper.getGeofence(name, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
+        GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofenceList);
         PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
 
          // list.forEach(coordinate -> tryAddingGeofence(coordinate))
