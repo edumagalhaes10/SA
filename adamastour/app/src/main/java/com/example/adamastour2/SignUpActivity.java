@@ -13,12 +13,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
-
     private FirebaseAuth auth;
     private EditText email_signup;
     private EditText password_signup;
@@ -53,7 +57,26 @@ public class SignUpActivity extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if(task.isSuccessful()){
-                                Toast.makeText(SignUpActivity.this, "Sign Up Successful", Toast.LENGTH_SHORT).show();
+                                //Toast.makeText(SignUpActivity.this, "Sign Up Successful", Toast.LENGTH_SHORT).show();
+                                Map<String, Object> userMap = new HashMap<>();
+                                String sanitizedUser = user.replaceAll("[.#$\\[\\]]", "");
+                                userMap.put("points", 0);
+                               // FirebaseDatabase.getInstance().getReference("gamification_points").child(String.valueOf(email_signup)).setValue(userMap);
+
+                                FirebaseDatabase.getInstance().getReference("gamification_points").child(sanitizedUser)
+                                        .setValue(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task2) {
+                                                if (task2.isSuccessful()) {
+                                                    Toast.makeText(SignUpActivity.this, "Created User with 0 points", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Toast.makeText(SignUpActivity.this, e.getMessage().toString(), Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
                                 startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
                             }
                             else {

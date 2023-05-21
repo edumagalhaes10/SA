@@ -76,6 +76,7 @@ public class SuggestionsActivity extends AppCompatActivity {
                 case R.id.nav_logout:
                     FirebaseAuth.getInstance().signOut();
                     startActivity(new Intent(getApplicationContext(), LoginActivity.class));
+                    finish();
                     return true;
 
             }
