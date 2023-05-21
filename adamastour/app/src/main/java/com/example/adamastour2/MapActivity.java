@@ -243,11 +243,12 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         placeName.setText(place.getName());
         placeAddress.setText(place.getAddress());
         Double rating = place.getRating();
-        if (rating != null) {
-            String rate = rating + "/5.0";
-            placeRating.setText(rate);
-        }
+        //if (rating != null) {
+        //    String rate = rating + "/5.0";
+        //    placeRating.setText(rate);
+        //}
         //placeRating.setText(place.getLatLng().toString());
+        placeRating.setText(place.getId());
 
         final List<PhotoMetadata> metadata = place.getPhotoMetadatas();
         if (metadata == null || metadata.isEmpty()) {
@@ -353,7 +354,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                     //String place = name + "," + city;
 
                     LatLng newgeo = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
-                    verifyGeofenceThenAdd(newgeo);
+                    verifyGeofenceThenAdd(newgeo, name);
                     Log.d(TAG, name);
 
                 }
@@ -391,12 +392,12 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    public void verifyGeofenceThenAdd(LatLng latLng) {
+    public void verifyGeofenceThenAdd(LatLng latLng, String name) {
 
         if (Build.VERSION.SDK_INT >= 29) {
             // We need background permission
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                tryAddingGeofence(latLng);
+                tryAddingGeofence(latLng, name);
             } else {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_REQUEST_CODE);
@@ -405,23 +406,23 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
             }
 
         } else {
-            tryAddingGeofence(latLng);
+            tryAddingGeofence(latLng, name);
         }
     }
 
     @SuppressLint("NewApi")
-    private void tryAddingGeofence(LatLng latLng) {
+    private void tryAddingGeofence(LatLng latLng, String name) {
         //gMap.clear();
         addMarker(latLng);
         addCircle(latLng, GEOFENCE_RADIUS);
-        addGeofence(latLng, GEOFENCE_RADIUS);
+        addGeofence(latLng, name, GEOFENCE_RADIUS);
     }
 
 
     @SuppressLint("MissingPermission")
-    private void addGeofence(LatLng latLng, float radius) {
+    private void addGeofence(LatLng latLng, String name, float radius) {
         //TODO mudar id para o nome dos monumentos
-        Geofence geofence = geofenceHelper.getGeofence(GEOFENCE_ID, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
+        Geofence geofence = geofenceHelper.getGeofence(name, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
         GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofence);
         PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
 
@@ -489,6 +490,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     public boolean onMarkerClick(@NonNull Marker marker) {
         marker.getPosition();
         //Place place =
+
         return false;
     }
 

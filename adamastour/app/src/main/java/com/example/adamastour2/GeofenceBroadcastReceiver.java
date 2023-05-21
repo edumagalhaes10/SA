@@ -22,8 +22,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     @Override
     public void onReceive(Context context, Intent intent) {
-        // TODO: This method is called when the BroadcastReceiver is receiving
-        // an Intent broadcast.
         //Toast.makeText(context, "Geofence triggered ...", Toast.LENGTH_SHORT).show();
 
         NotificationHelper notificationHelper = new NotificationHelper(context);
@@ -47,7 +45,7 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         switch (transitionType){
             case Geofence.GEOFENCE_TRANSITION_ENTER:
                 Toast.makeText(context, "Geofence entered", Toast.LENGTH_SHORT).show();
-                notificationHelper.sendHighPriorityNotification("Geofence entered :)","You are currently near a Point of Interest!",MapActivity.class);
+                notificationHelper.sendHighPriorityNotification("Geofence entered :)","You are currently near " + geofencingEvent.getTriggeringGeofences().get(0).getRequestId(),MapActivity.class);
                 break;
             case Geofence.GEOFENCE_TRANSITION_DWELL:
                 Toast.makeText(context, "On a Geofence", Toast.LENGTH_SHORT).show();
