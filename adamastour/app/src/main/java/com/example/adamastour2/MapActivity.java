@@ -12,6 +12,8 @@ import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
@@ -29,6 +31,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -50,7 +53,9 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.PhotoMetadata;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.FetchPhotoRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
@@ -65,9 +70,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 
-public class MapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, NavigationView.OnNavigationItemSelectedListener {
+public class MapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     // layout variables
     FloatingActionButton fab;
@@ -77,6 +84,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
     // maps and location service variables
     GoogleMap gMap;
+    Place currentPlace;
     FusedLocationProviderClient fusedClient;
     Location currentLocation;
     Marker marker;
@@ -116,7 +124,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         NavigationView navigationView = findViewById(R.id.nav_view);
         drawerEmail = navigationView.getHeaderView(0).findViewById(R.id.drawerEmail);
         MenuItem drawerPoints = navigationView.getMenu().findItem(R.id.nav_points);
-        //drawerPoints = navigationView.findViewById(R.id.nav_points);
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             String email = user.getEmail();
@@ -124,15 +131,13 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
             updateGamificationPoints(sanitizedEmail, new OnPointsUpdatedListener() {
                 @Override
                 public void onPointsUpdated(int points) {
-                    // Handle the updated points value here
-                    // You can use the 'points' value returned from the callback
                     String pontos = points + " Points";
                     drawerPoints.setTitle(pontos);
                     Log.d("firebase", "Updated points: " + points);
                 }
             });
-            drawerEmail.setText(email);
 
+            drawerEmail.setText(email);
             //String name = user.getDisplayName();
             //Uri photoUrl = user.getPhotoUrl();
         }
@@ -189,7 +194,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         placesClient = Places.createClient(this);
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG));
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS, Place.Field.RATING, Place.Field.PHOTO_METADATAS));
 
 
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -213,10 +218,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM);
                 gMap.animateCamera(cameraUpdate);
                 marker = gMap.addMarker(markerOptions);
+
+                currentPlace = place;
             }
 
         });
-
 
         gps.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,37 +233,61 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showBottomDialog();
+                showBottomDialog(currentPlace);
             }
         });
     }
 
-    //private void updateUIInfo(Place place) {
-//
-    //    placeName.setText(place.getName());
-    //    placeAddress.setText(place.getAddress());
-    //    placeRating.setText(place.getIconUrl());
-    //    place.
-    //    int resourceID = getResources().getIdentifier(weatherData.getIcon(), "drawable", getPackageName());
-    //    weatherIcon.setImageResource(resourceID);
-    //}
+    private void updateUIInfo(Place place) {
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        return false;
+        placeName.setText(place.getName());
+        placeAddress.setText(place.getAddress());
+        Double rating = place.getRating();
+        if (rating != null) {
+            String rate = rating + "/5.0";
+            placeRating.setText(rate);
+        }
+        //placeRating.setText(place.getLatLng().toString());
+
+        final List<PhotoMetadata> metadata = place.getPhotoMetadatas();
+        if (metadata == null || metadata.isEmpty()) {
+            Log.w(TAG, "No photo metadata.");
+            return;
+        }
+        final PhotoMetadata photoMetadata = metadata.get(0);
+
+        // Get the attribution text.
+        final String attributions = photoMetadata.getAttributions();
+
+        // Create a FetchPhotoRequest.
+        final FetchPhotoRequest photoRequest = FetchPhotoRequest.builder(photoMetadata).build();
+
+        placesClient.fetchPhoto(photoRequest).addOnSuccessListener((fetchPhotoResponse) -> {
+            Bitmap bitmap = fetchPhotoResponse.getBitmap();
+            placeIcon.setImageBitmap(bitmap);
+        }).addOnFailureListener((exception) -> {
+            if (exception instanceof ApiException) {
+                final ApiException apiException = (ApiException) exception;
+                Log.e(TAG, "Place not found: " + exception.getMessage());
+                final int statusCode = apiException.getStatusCode();
+            }
+        });
     }
 
-    private void showBottomDialog() {
+
+    private void showBottomDialog(Place place) {
 
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottomsheetlayout);
 
-        LinearLayout nomeLayout = dialog.findViewById(R.id.layoutNome);
-        LinearLayout moradaLayout = dialog.findViewById(R.id.layoutMorada);
-        LinearLayout outrosLayout = dialog.findViewById(R.id.layoutOutros);
+        placeName = dialog.findViewById(R.id.layoutNome);
+        placeAddress = dialog.findViewById(R.id.layoutMorada);
+        placeRating = dialog.findViewById(R.id.layoutOutros);
+        placeIcon = dialog.findViewById(R.id.place_image);
 
-        // TODO : PREENCHER COM API PLACES - info sítios
+        if(place != null)
+            updateUIInfo(place);
 
 
         dialog.show();
@@ -274,7 +304,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 && ActivityCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, FINE_LOCATION_REQUEST_CODE);
-            //return;
         }
         Task<Location> task = fusedClient.getLastLocation();
         task.addOnSuccessListener(new OnSuccessListener<Location>() {
@@ -317,14 +346,14 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
                     String name = childSnapshot.child("name").getValue(String.class);
-                    String city = childSnapshot.child("city").getValue(String.class);
+                    //String city = childSnapshot.child("city").getValue(String.class);
                     String lat = childSnapshot.child("lat").getValue(String.class);
                     String lng = childSnapshot.child("long").getValue(String.class);
 
-                    String place = name + "," + city;
+                    //String place = name + "," + city;
 
                     LatLng newgeo = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
-                    tryAddingGeofence(newgeo);
+                    verifyGeofenceThenAdd(newgeo);
                     Log.d(TAG, name);
 
                 }
@@ -335,6 +364,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 Toast.makeText(MapActivity.this, "Unable to load geofences", Toast.LENGTH_SHORT).show();
             }
         });
+
+        gMap.setOnMarkerClickListener(this);
 
     }
 
@@ -349,7 +380,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         }
         if (requestCode == BACKGROUND_LOCATION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "You can add geofences", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "You can see geofences", Toast.LENGTH_SHORT).show();
             } else
                 Toast.makeText(this, "Background location access is necessary for geofences to trigger!", Toast.LENGTH_SHORT).show();
         }
@@ -360,8 +391,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    @Override
-    public void onMapLongClick(@NonNull LatLng latLng) {
+    public void verifyGeofenceThenAdd(LatLng latLng) {
 
         if (Build.VERSION.SDK_INT >= 29) {
             // We need background permission
@@ -438,9 +468,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 }
                 else {
                     DataSnapshot dataSnapshot = task.getResult();
-                    Log.d("points", "oi");
                     if (dataSnapshot.exists()) {
-                        Log.d("points", "oi");
                         DataSnapshot childSnapshot = dataSnapshot.child("points");
                         if (childSnapshot.exists()) {
                             int points = childSnapshot.getValue(Integer.class);
@@ -455,6 +483,13 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        marker.getPosition();
+        //Place place =
+        return false;
     }
 
     public interface OnPointsUpdatedListener {

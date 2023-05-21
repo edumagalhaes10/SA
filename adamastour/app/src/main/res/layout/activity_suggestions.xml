@@ -156,6 +156,18 @@
         </LinearLayout>
     </LinearLayout>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/suggestions"
+        android:text="Daily Suggestions"
+        android:layout_marginStart="10dp"
+        android:textColor="@color/mygold"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:padding="10dp"
+        android:layout_below="@+id/pollution"/>
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -165,7 +177,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginStart="15dp"
         android:layout_marginEnd="15dp"
-        android:layout_below="@+id/pollution">
+        android:layout_below="@+id/suggestions">
 
         <LinearLayout
             android:layout_width="match_parent"

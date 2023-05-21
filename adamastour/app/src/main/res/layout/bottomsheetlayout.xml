@@ -57,38 +57,95 @@
         android:src="@drawable/adamastour_logo"/>
 
 
-    <TextView
-        android:id="@+id/layoutNome"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="30dp"
-        android:padding="10dp"
-        android:text="Nome"
-        android:textColor="@color/myblue"
-        android:textSize="16sp"/>
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
 
-    <TextView
-        android:id="@+id/layoutMorada"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginStart="30dp"
-        android:padding="10dp"
-        android:text="Morada"
-        android:textColor="@color/myblue"
-        android:textSize="16sp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:padding="10dp"
+            android:text="Name"
+            android:textStyle="bold"
+            android:textColor="@color/myblue"
+            android:textSize="16sp"/>
 
-    <TextView
-        android:id="@+id/layoutOutros"
+        <TextView
+            android:id="@+id/layoutNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="22dp"
+            android:layout_marginEnd="10dp"
+            android:padding="10dp"
+            android:text="Please Search for a place"
+            android:textColor="@color/myblue"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
+
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:padding="10dp"
+            android:text="Address"
+            android:textStyle="bold"
+            android:textColor="@color/myblue"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/layoutMorada"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="10dp"
+            android:padding="10dp"
+            android:text="-----"
+            android:textColor="@color/myblue"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_marginTop="10dp"
-        android:layout_marginStart="30dp"
-        android:padding="10dp"
-        android:text="Outros"
-        android:textColor="@color/myblue"
-        android:textSize="16sp"/>
+        android:layout_marginBottom="40dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:padding="10dp"
+            android:text="Rating"
+            android:textStyle="bold"
+            android:textColor="@color/myblue"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/layoutOutros"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="17dp"
+            android:layout_marginEnd="10dp"
+            android:padding="10dp"
+            android:text="-/5.0"
+            android:textColor="@color/myblue"
+            android:textSize="16sp"/>
+
+    </LinearLayout>
+
 
 
 
