@@ -11,6 +11,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -41,7 +42,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class SuggestionsActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
-    String APP_ID = "3d6bd889ce3a72e1937ebe70f328d97a";
+    String APP_ID;
     String WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather?";
     String POLLUTION_URL = "https://api.openweathermap.org/data/2.5/air_pollution?";
 
@@ -56,6 +57,17 @@ public class SuggestionsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_suggestions);
+
+        ApplicationInfo applicationInfo = null;
+        try {
+            applicationInfo = getPackageManager().getApplicationInfo(
+                    getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            // Handle exception if package or metadata not found
+        }
+
+        Bundle metaData = applicationInfo.metaData;
+        APP_ID = metaData.getString("WEATHER_POLLUTION_KEY");
 
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         getLocation();

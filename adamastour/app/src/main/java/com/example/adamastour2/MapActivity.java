@@ -11,6 +11,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -194,7 +195,20 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
 
         // for searchbar autocomplete
-        Places.initialize(getApplicationContext(), getResources().getString(R.string.google_maps_key));
+        //val applicationInfo: ApplicationInfo = application.packageManager.getApplicationInfo(application.packageName, PackageManager.GET_META_DATA)
+        //val apiKey = applicationInfo.metaData["YOUR_API_KEY_NAME"]
+
+        ApplicationInfo applicationInfo = null;
+        try {
+            applicationInfo = getPackageManager().getApplicationInfo(
+                    getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            // Handle exception if package or metadata not found
+        }
+
+        Bundle metaData = applicationInfo.metaData;
+        String apiKey = metaData.getString("com.google.android.geo.API_KEY");
+        Places.initialize(getApplicationContext(), apiKey);
         placesClient = Places.createClient(this);
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
