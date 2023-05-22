@@ -194,7 +194,7 @@
                 android:id="@+id/suggestion_photo"/>
 
             <LinearLayout
-                android:layout_width="250dp"
+                android:layout_width="200dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="10dp"
                 android:orientation="vertical">
@@ -213,7 +213,7 @@
                     android:layout_height="wrap_content"
                     android:text="Place Address"
                     android:textColor="@color/black"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/suggestion_redirect"
@@ -223,14 +223,16 @@
                     android:text="View in Map"
                     android:textColor="@color/black"
                     android:textIsSelectable="true"
-                    android:textSize="10sp" />
+                    android:textSize="11sp" />
             </LinearLayout>
 
             <ImageView
-                android:layout_width="30dp"
+                android:layout_width="40dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/baseline_favorite_border_24"
-                android:layout_gravity="end|bottom"/>
+                android:layout_gravity="end|bottom"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
