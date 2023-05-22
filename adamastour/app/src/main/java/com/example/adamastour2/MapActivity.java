@@ -261,12 +261,12 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         placeName.setText(place.getName());
         placeAddress.setText(place.getAddress());
         Double rating = place.getRating();
-        //if (rating != null) {
-        //    String rate = rating + "/5.0";
-        //    placeRating.setText(rate);
-        //}
+        if (rating != null) {
+            String rate = rating + "/5.0";
+            placeRating.setText(rate);
+        }
         //placeRating.setText(place.getLatLng().toString());
-        placeRating.setText(place.getId());
+       // placeRating.setText(place.getId());
 
         final List<PhotoMetadata> metadata = place.getPhotoMetadatas();
         if (metadata == null || metadata.isEmpty()) {
