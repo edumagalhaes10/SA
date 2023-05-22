@@ -94,7 +94,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
     // geofencing variables
     private GeofencingClient geofencingClient;
     private GeofenceHelper geofenceHelper;
-    private float GEOFENCE_RADIUS = 200;
+    private float GEOFENCE_RADIUS = 350;
+    private float GEOFENCE_RADIUS2 = 70;
     private String GEOFENCE_ID = "SOME_GEOFENCE_ID";
 
 
@@ -357,7 +358,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
                     //String place = name + "," + city;
 
                     LatLng newgeo = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
-                    verifyGeofenceThenAdd(newgeo, name);
+                    verifyGeofenceThenAdd(newgeo, name, GEOFENCE_RADIUS);
+                    verifyGeofenceThenAdd(newgeo, name + "_visited", GEOFENCE_RADIUS2);
                     Log.d(TAG, name);
 
                 }
@@ -396,12 +398,12 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         }
     }
 
-    public void verifyGeofenceThenAdd(LatLng latLng, String name) {
+    public void verifyGeofenceThenAdd(LatLng latLng, String name, float radius) {
 
         if (Build.VERSION.SDK_INT >= 29) {
             // We need background permission
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                tryAddingGeofence(latLng, name);
+                tryAddingGeofence(latLng, name, radius);
             } else {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_BACKGROUND_LOCATION)) {
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, BACKGROUND_LOCATION_REQUEST_CODE);
@@ -410,16 +412,16 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
             }
 
         } else {
-            tryAddingGeofence(latLng, name);
+            tryAddingGeofence(latLng, name, radius);
         }
     }
 
     @SuppressLint("NewApi")
-    private void tryAddingGeofence(LatLng latLng, String name) {
+    private void tryAddingGeofence(LatLng latLng, String name, float radius) {
         //gMap.clear();
         addMarker(latLng);
-        //addCircle(latLng, GEOFENCE_RADIUS);
-        Geofence geofence = geofenceHelper.getGeofence(name, latLng, GEOFENCE_RADIUS, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
+        addCircle(latLng, radius);
+        Geofence geofence = geofenceHelper.getGeofence(name, latLng, radius, Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_DWELL | Geofence.GEOFENCE_TRANSITION_EXIT);
         geofenceList.add(geofence);
        // addGeofence(latLng, name, GEOFENCE_RADIUS);
     }

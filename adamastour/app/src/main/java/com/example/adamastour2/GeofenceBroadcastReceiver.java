@@ -44,12 +44,17 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         switch (transitionType){
             case Geofence.GEOFENCE_TRANSITION_ENTER:
-                Toast.makeText(context, "Geofence entered", Toast.LENGTH_SHORT).show();
-                notificationHelper.sendHighPriorityNotification("Geofence entered :)","You are currently near " + geofencingEvent.getTriggeringGeofences().get(0).getRequestId(),MapActivity.class);
+                String name = geofencingEvent.getTriggeringGeofences().get(0).getRequestId();
+                if (name.contains("_visited")) {
+                    Toast.makeText(context, "Geofence visited", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Geofence entered", Toast.LENGTH_SHORT).show();
+                    notificationHelper.sendHighPriorityNotification("Geofence entered :)","You are currently near " + name,MapActivity.class);
+                }
                 break;
             case Geofence.GEOFENCE_TRANSITION_DWELL:
-                Toast.makeText(context, "On a Geofence", Toast.LENGTH_SHORT).show();
-                notificationHelper.sendHighPriorityNotification("On a Geofence :)","You are currently near a Point of Interest!",MapActivity.class);
+                //Toast.makeText(context, "On a Geofence", Toast.LENGTH_SHORT).show();
+                //notificationHelper.sendHighPriorityNotification("On a Geofence :)","You are currently near a Point of Interest!",MapActivity.class);
                 break;
             case Geofence.GEOFENCE_TRANSITION_EXIT:
                 Toast.makeText(context, "Exited Geofence", Toast.LENGTH_SHORT).show();
