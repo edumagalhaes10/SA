@@ -8,12 +8,21 @@ import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
@@ -44,12 +53,20 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         switch (transitionType){
             case Geofence.GEOFENCE_TRANSITION_ENTER:
-                String name = geofencingEvent.getTriggeringGeofences().get(0).getRequestId();
-                if (name.contains("_visited")) {
-                    Toast.makeText(context, "Geofence visited", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(context, "Geofence entered", Toast.LENGTH_SHORT).show();
-                    notificationHelper.sendHighPriorityNotification("Geofence entered :)","You are currently near " + name,MapActivity.class);
+                for (Geofence g: geofenceList) {
+                    String name = g.getRequestId();
+                    if (name.contains("_visited")) {
+                        Toast.makeText(context, "Geofence visited", Toast.LENGTH_SHORT).show();
+                        LocalDate date = LocalDate.now();
+
+                        String firebase_id = name+"_"+date.toString();
+                        Toast.makeText(context, firebase_id, Toast.LENGTH_LONG).show();
+
+                        updatePlacesVisited(firebase_id);
+                    } else {
+                        Toast.makeText(context, "Geofence entered", Toast.LENGTH_SHORT).show();
+                        notificationHelper.sendHighPriorityNotification("Geofence entered :)", "You are currently near " + name, MapActivity.class);
+                    }
                 }
                 break;
             case Geofence.GEOFENCE_TRANSITION_DWELL:
@@ -62,4 +79,43 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
                 break;
         }
     }
+
+
+
+    public void updatePlacesVisited(String firebase_id) {
+        FirebaseDatabase.getInstance().getReference("placesVisitedCount").child(firebase_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    DataSnapshot dataSnapshot = task.getResult();
+                    if (dataSnapshot.exists()) {
+                        DataSnapshot childSnapshot = dataSnapshot.child("visits_count");
+                        if (childSnapshot.exists()) {
+                            Map<String, Object> postValues = new HashMap<>();
+                            postValues.put("visits_count", childSnapshot.getValue(Integer.class)+1);
+                            Map<String, Object> childUpdates = new HashMap<>();
+                            childUpdates.put("/placesVisitedCount/" + firebase_id, postValues);
+                            FirebaseDatabase.getInstance().getReference().updateChildren((childUpdates));
+                            //  Log.d("firebase", "Value: " + value);
+                            Log.d("firebase", "Hello, updated user points");
+
+                        } else {
+                            Log.d("firebase", "Child does not exist");
+                        }
+                        // Data for the given user ID exists
+                        // You can access the data using dataSnapshot.getValue() or iterate through its children
+                    } else {
+                        FirebaseDatabase.getInstance().getReference("placesVisitedCount").child(firebase_id).child("visits_count").setValue(1);
+                        Log.d("firebase", "Created Entry in database");
+                    }
+
+                }
+            }
+        });
+    }
+
+
 }
