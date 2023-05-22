@@ -195,9 +195,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
 
 
         // for searchbar autocomplete
-        //val applicationInfo: ApplicationInfo = application.packageManager.getApplicationInfo(application.packageName, PackageManager.GET_META_DATA)
-        //val apiKey = applicationInfo.metaData["YOUR_API_KEY_NAME"]
-
         ApplicationInfo applicationInfo = null;
         try {
             applicationInfo = getPackageManager().getApplicationInfo(
@@ -356,7 +353,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         gMap.setMyLocationEnabled(true);
         //gMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-        //gMap.setOnMapLongClickListener(this);
 
         database = FirebaseDatabase.getInstance().getReference("Points of Interest");
 
@@ -447,7 +443,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback,
         GeofencingRequest geofencingRequest = geofenceHelper.getGeofencingRequest(geofenceList);
         PendingIntent pendingIntent = geofenceHelper.getPendingIntent();
 
-         // list.forEach(coordinate -> tryAddingGeofence(coordinate))
+
         geofencingClient.addGeofences(geofencingRequest, pendingIntent)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override

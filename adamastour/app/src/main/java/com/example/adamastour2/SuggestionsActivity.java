@@ -157,12 +157,6 @@ public class SuggestionsActivity extends AppCompatActivity {
             lng = "-8.4229"; // coordenadas de braga - default
         }
 
-        //RequestParams params = new RequestParams();
-        //params.put("lat", lat);
-        //params.put("lng", lng);
-        //params.put("appid", APP_ID);
-        //network(params);
-
         WEATHER_URL = WEATHER_URL + "lat=" + lat + "&lon=" + lng + "&appid=" + APP_ID;
         POLLUTION_URL = POLLUTION_URL + "lat=" + lat + "&lon=" + lng + "&appid=" + APP_ID;
 
